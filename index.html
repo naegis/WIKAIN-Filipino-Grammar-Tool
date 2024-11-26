@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+    <!-- Custom Css -->
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    
+
+    <!-- Ionic icons -->
+    <link href="https://unpkg.com/ionicons@4.2.0/dist/css/ionicons.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900" rel="stylesheet">
+
+    <title>WIKAIN: Filipino Grammar Tool</title>
+  </head>
+
+  <body>
+
+  <!-- N A V B A R -->
+  <nav class="navbar navbar-default navbar-expand-lg fixed-top custom-navbar">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="icon ion-md-menu"></span>
+    </button>
+    <a href="#hero"><img src="WIKAINLOGO.png" class="img-fluid nav-logo-mobile" alt="Company Logo"></a>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <div class="container">
+      	<img src="WIKAINLOGO.png" class="img-fluid nav-logo-desktop" alt="Company Logo">
+        <ul class="navbar-nav ml-auto nav-right" data-easing="easeInOutExpo" data-speed="1250" data-offset="65">
+          <li class="nav-item nav-custom-link">
+            <a class="nav-link" href="index.html">Home <i class="icon ion-ios-arrow-forward icon-mobile"></i></a>
+          </li>
+          
+          <li class="nav-item nav-custom-link">
+            <a class="nav-link" href="#testimonials">Testimonials <i class="icon ion-ios-arrow-forward icon-mobile"></i></a>
+          </li>
+          <li class="nav-item nav-custom-link">
+            <a class="nav-link" href="#features">Features<i class="icon ion-ios-arrow-forward icon-mobile"></i></a>
+          </li>
+          <li class="nav-item nav-custom-link">
+            <a class="nav-link" href="#footer">Contact<i class="icon ion-ios-arrow-forward icon-mobile"></i></a>
+          </li>
+          <li class="nav-item nav-custom-link btn btn-demo-small">
+            <a class="nav-link" href="#tool">Try for Free <i class="icon ion-ios-arrow-forward icon-mobile"></i></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- E N D  N A V B A R -->
+  
+  <!-- H E R O -->
+  <section id="hero">
+        <div class="col-md-7 content-box hero-content">
+          
+          <div class="contents">
+            <h1 class="static">
+                <b>START WRITING <br>
+                    <ul class="text-line">
+                        <li><span>WITH LESS WORRIES</span></li>
+                        <li><span>WITH LESS ERRORS</span></li>
+                        <li><span>CONFIDENTLY.</span></li>
+                    </ul>
+                </b>
+            </h1>
+        </div>
+
+            
+          <p>WikAIn is your go-to tool for catching Filipino grammar slip-ups, <br>helping you write with clarity and confidence. </p>
+          
+          <button class="btn btn1">
+              <svg height="24" width="24" fill="#FFFFFF" viewBox="0 0 24 24" data-name="Layer 1" id="Layer_1" class="sparkle">
+                  <path d="M10,21.236,6.755,14.745.264,11.5,6.755,8.255,10,1.764l3.245,6.491L19.736,11.5l-6.491,3.245ZM18,21l1.5,3L21,21l3-1.5L21,18l-1.5-3L18,18l-3,1.5ZM19.333,4.667,20.5,7l1.167-2.333L24,3.5,21.667,2.333,20.5,0,19.333,2.333,17,3.5Z"></path>
+              </svg>
+          
+              <a href="#tool"><span class="text1">Get Started</span></a>
+          </button>
+          <a href="#features" class="btn btn-regular">Learn more</a>
+        <!-- </div> -->
+      <!-- </div> -->
+      </div>
+  </section>
+
+  <!-- E N D  H E R O -->
+
+
+  <!-- T O O L -->
+   
+  <section id="tool">
+<div class="container">
+  <div class="title-block">
+    <h2>Grammar Checker</h2>
+  </div>
+
+  <div class="squarebox">
+    <div class="sbcontainer">
+      <div class="input">
+        <textarea id="input-text" placeholder="Start by writing, or pasting (Ctrl + V) your text."></textarea>
+        <button class="paste-btn" onclick="pasteText()">Paste Text</button>
+        <div class="delete-icon" onclick="clearText()"><svg width="22" height="26" viewBox="0 0 27 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path id="Vector" d="M1.83325 8.2288H25.1666M10.5833 14.4576V23.8008M16.4166 14.4576V23.8008M3.29159 8.2288L4.74992 26.9152C4.74992 27.7412 5.05721 28.5334 5.60419 29.1174C6.15117 29.7015 6.89304 30.0296 7.66659 30.0296H19.3333C20.1068 30.0296 20.8487 29.7015 21.3956 29.1174C21.9426 28.5334 22.2499 27.7412 22.2499 26.9152L23.7083 8.2288M9.12492 8.2288V3.5572C9.12492 3.14421 9.27856 2.74812 9.55206 2.45609C9.82555 2.16406 10.1965 2 10.5833 2H16.4166C16.8034 2 17.1743 2.16406 17.4478 2.45609C17.7213 2.74812 17.8749 3.14421 17.8749 3.5572V8.2288" stroke="#00077E" stroke-opacity="0.96" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg></div>
+
+      </div>
+      
+      
+      <div class="output">
+        <!-- output -->
+        <textarea readonly id="output-text" placeholder="Your text will appear here"></textarea>
+        <div class="delete-icon" onclick="copyText()">
+          <svg width="22" height="26" viewBox="0 0 27 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.6665 5.02789V23.1952C7.6665 23.9983 7.9738 24.7684 8.52078 25.3363C9.06776 25.9041 9.80962 26.2231 10.5832 26.2231H22.2498C23.0234 26.2231 23.7653 25.9041 24.3122 25.3363C24.8592 24.7684 25.1665 23.9983 25.1665 23.1952V9.9361C25.1665 9.53272 25.0888 9.13342 24.938 8.76165C24.7873 8.38987 24.5665 8.05312 24.2886 7.77116L19.4542 2.86295C18.9093 2.30984 18.1775 2.0001 17.4155 2H10.5832C9.80962 2 9.06776 2.31901 8.52078 2.88685C7.9738 3.45469 7.6665 4.22484 7.6665 5.02789Z" stroke="#00077E" stroke-opacity="0.96" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19.3333 26.223V29.2509C19.3333 30.0539 19.026 30.8241 18.479 31.3919C17.932 31.9597 17.1901 32.2787 16.4166 32.2787H4.74992C3.97637 32.2787 3.2345 31.9597 2.68752 31.3919C2.14054 30.8241 1.83325 30.0539 1.83325 29.2509V12.5975C1.83325 11.7944 2.14054 11.0243 2.68752 10.4564C3.2345 9.88859 3.97637 9.56958 4.74992 9.56958H7.66659" stroke="#00077E" stroke-opacity="0.96" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+      </div>
+
+      <button class="btn btn1" onclick="checkGrammar()">
+        <svg height="24" width="24" fill="#FFFFFF" viewBox="0 0 24 24" data-name="Layer 1" id="Layer_1" class="sparkle">
+            <path d="M10,21.236,6.755,14.745.264,11.5,6.755,8.255,10,1.764l3.245,6.491L19.736,11.5l-6.491,3.245ZM18,21l1.5,3L21,21l3-1.5L21,18l-1.5-3L18,18l-3,1.5ZM19.333,4.667,20.5,7l1.167-2.333L24,3.5,21.667,2.333,20.5,0,19.333,2.333,17,3.5Z"></path>
+        </svg>
+        <span class="text1">I-wasto!</span>
+      </button>
+
+    </div>
+    <div class="revcontainer">
+      <span class="rtitle">
+        Revisions
+       </span><br>
+      <div class="revisions">
+        <!-- revisions -->
+        <svg width="116" height="141" viewBox="0 0 116 141" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M38.5596 120.127H12.8532V13.3474H57.8393V46.716H89.9723V67.4045L102.825 54.0571V40.0423L64.2659 0H12.8532C5.78393 0 0 6.00634 0 13.3474V120.127C0 127.468 5.78393 133.474 12.8532 133.474H38.5596V120.127ZM104.111 73.4109C104.753 73.4109 106.039 74.0782 106.681 74.7456L115.036 83.4214C116.321 84.7562 116.321 87.4257 115.036 88.7604L108.609 95.4341L95.1136 81.4193L101.54 74.7456C102.183 74.0782 102.826 73.4109 104.111 73.4109ZM104.111 99.4384L64.9086 140.148H51.4127V126.133L90.615 85.4236L104.111 99.4384Z" fill="#666666"/>
+          </svg>
+         <span class="revisionsp1">
+          <br><br>Your revisions will appear here.
+         </span>
+         <span class="revisionsp2">
+          <br>Start writing to see your corrections.
+         </span>
+      </div>
+    </div>
+  </div>
+  
+</div>
+</section>
+
+  <!-- E N D  T O O L  -->
+
+
+
+  <!-- T E S T I M O N I A L S -->
+  <section id="testimonials">
+    <div class="container">
+      <div class="title-block">
+        <h2>Bakit Nga Ba Mahalaga ang WikAIn?</h2>
+        <p>Ito ay isa lamang sa halimbawa ng mga sinasabi ng mga Gumagamit</p>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="testimonial-box">
+            <div class="row personal-info">
+              <div class="col-md-2 col-xs-2">
+                <div class="profile-picture review-one"></div>
+              </div>
+              <div class="col-md-10 col-xs-10">
+                <h6>Kristian Gabot  <span class="rating">5 <i class="icon ion-md-star"></i></span></h6>
+                <small>Marketing Intelligence | Author & Content Creator</small>
+              </div>
+            </div>
+            <p>“Bilang content creator, mahigpit ang pangangailangan sa tamang grammar at malikhaing pagsusulat. Ang WikAIn ang isa sa mga paborito kong gamit, araw-araw itong nakakatulong sa akin.”</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="testimonial-box">
+            <div class="row personal-info">
+              <div class="col-md-2 col-xs-2">
+                <div class="profile-picture review-one"></div>
+              </div>
+              <div class="col-md-10 col-xs-10">
+                <h6>EJ Aggabao <span class="rating">5 <i class="icon ion-md-star"></i></span></h6>
+                <small>Seo Consultant | Author & Content Creator</small>
+              </div>
+            </div>
+            <p>“Ang WikAIn ay hindi lang simpleng tool; ito ay isang evolving na sistema na tumutulong sa akin sa mga proyekto sa akademiko at propesyonal.”</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- E N D  T E S T I M O N I A L S -->
+
+  <!-- P R I C I N G -->
+  <section id="features">
+    <div class="container">
+      <div class="title-block">
+        <h2>Lahat ng Proyekto, Kayang Kaya ng WikAIn</h2>
+        <p>Mula sa mga sanaysay at pananaliksik hanggang sa mga liham at malikhaing akda, ang WikAIn ang iyong katuwang sa pagsusulat. </p>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="features-box">
+            <h3 class="demo">#1</h3>
+            <h6>Pagwawasto ng Gramatika</h6>
+            <p>Binibigyang-linaw ang pagkakabuo ng bawat pangungusap</p>
+            <div class="divider-light"></div>
+            <ul>
+              <li><i class="icon ion-md-checkmark-circle-outline demo"></i>Awtomatikong pagtukoy ng mali sa pangungusap</li>
+              <li><i class="icon ion-md-checkmark-circle-outline demo"></i>Pagsasaayos ng pandiwa, panghalip, at pangngalan</li>
+              <li><i class="icon ion-md-checkmark-circle-outline demo"></i>Tulong sa tamang gamit ng mga panlapi</li>
+            </ul>
+
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="features-box">
+            <h3>#2</h3>
+            <h6>Pagpapaganda ng Estilo</h6>
+            <p>Pag-aayos ng estruktura ng pangungusap</p>
+            <div class="divider-light"></div>
+            <ul>
+              <li><i class="icon ion-md-checkmark-circle-outline"></i>Pagpapalakas ng pagpapahayag ng ideya</li>
+              <li><i class="icon ion-md-checkmark-circle-outline"></i>Pagpapantay sa tono ng pagsusulat</li>
+              <li><i class="icon ion-md-checkmark-circle-outline"></i>Binibigyang-buhay ang mga pahayag para mas maging kaaya-aya</li>
+
+            </ul>
+
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="features-box">
+            <h3>#3</h3>
+            <h6>Mabilis at Maayos na Pagsusuri</h6>
+            <p>Agarang puna sa pagsusulat</p>
+            <div class="divider-light"></div>
+            <ul>
+              <li><i class="icon ion-md-checkmark-circle-outline"></i>Praktikal na mungkahi para sa pagpapabuti ng kasulatan</li>
+              <li><i class="icon ion-md-checkmark-circle-outline"></i>Agarang pag-aayos pagtapos magsulat.</li>
+              <li><i class="icon ion-md-checkmark-circle-outline"></i>Tinatanggal ang kaba sa pagsusulat gamit ang makabagong AI analysis</li>
+
+            </ul>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- E N D  P R I C I N G -->
+
+
+  <!--  F O O T E R  -->
+  <footer id="footer">
+    <div class="container">
+      <div class="divider"></div>
+      <div class="row">
+        <div class="col-md-6 col-xs-12">
+            <a href="#"><i class="icon ion-logo-facebook"></i></a>
+            <a href="#"><i class="icon ion-logo-instagram"></i></a>
+            <a href="#"><i class="icon ion-logo-twitter"></i></a>
+            <a href="#"><i class="icon ion-logo-youtube"></i></a>
+          </div>
+          <div class="col-md-6 col-xs-12">
+            <small>2024 &copy; All rights reserved. Made by <a href="" target="blank" class="external-links">NAEGIS</a></small>
+          </div>
+      </div>
+    </div>
+  </footer>
+  <!--  E N D  F O O T E R  -->
+    
+
+    <!-- External JavaScripts -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+  
+    <script src="script.js"></script>
+  </body>
+</html>
