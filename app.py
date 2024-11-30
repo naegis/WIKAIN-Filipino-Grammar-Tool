@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import re
+import numpy as np
 import difflib  # Import difflib for computing differences
 
 app = Flask(__name__)
@@ -377,11 +378,59 @@ def fix_ds_rs(text, changes):
 
     return text
 
-def compute_differences(original, corrected):
-    # Use difflib to compute differences
-    diff = difflib.ndiff(original.split(), corrected.split())
-    changes = [f"{' '.join(diff)}"]
-    return changes
+
+def compute_differences(original, corrected, changes):
+    # Split original and corrected sentences into words
+    original_words = original.split()
+    corrected_words = corrected.split()
+
+    # Initialize DP table with dimensions (len(original_words)+1) x (len(corrected_words)+1)
+    dp = np.zeros((len(original_words) + 1, len(corrected_words) + 1))
+
+    # Fill the DP table
+    for i in range(len(original_words) + 1):
+        for j in range(len(corrected_words) + 1):
+            if i == 0:
+                dp[i][j] = j  # Insertions needed when original is empty
+            elif j == 0:
+                dp[i][j] = i  # Deletions needed when corrected is empty
+            else:
+                if original_words[i - 1] == corrected_words[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1]  # No operation needed if words are the same
+                else:
+                    dp[i][j] = min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]) + 1  # Minimum of substitution, deletion, or insertion
+
+    # Backtrack to find the edits
+    i, j = len(original_words), len(corrected_words)
+    changes_found = []
+
+    while i > 0 or j > 0:
+        if i > 0 and j > 0 and original_words[i - 1] == corrected_words[j - 1]:
+            # Words are the same, no change
+            i -= 1
+            j -= 1
+        elif j > 0 and dp[i][j] == dp[i][j - 1] + 1:
+            # Insertion in corrected
+            j -= 1
+        elif i > 0 and dp[i][j] == dp[i - 1][j] + 1:
+            # Deletion in original
+            changes_found.append(f"Original: '{original_words[i - 1]}' Corrected: ''")
+            i -= 1
+        else:
+            # Substitution
+            changes_found.append(f"Original: '{original_words[i - 1]}' Corrected: '{corrected_words[j - 1]}'")
+            i -= 1
+            j -= 1
+
+    # Reverse the changes since we backtracked
+    changes_found.reverse()
+
+    # Return the changes formatted
+    return changes_found
+
+
+
+
 
 @app.route('/')
 def serve_index():
@@ -417,7 +466,9 @@ def check_grammar():
         corrected_text = fix_ds_rs(corrected_text, changes)
         
         # Compute differences once at the end
-        changes = compute_differences(text, corrected_text)
+        print(changes)
+        changes = compute_differences(text, corrected_text, changes)
+
         
         return jsonify({
             'corrected_text': corrected_text,
