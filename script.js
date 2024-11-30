@@ -85,22 +85,3 @@ async function checkGrammar() {
     outputTextArea.value = 'Nagkaroon ng error habang sinusuri ang grammar.';
   }
 }
-
-const text = document.querySelector('.secondtext');
-
-  const textLoad = () => {
-    setTimeout(() => {
-      text.textContent = "WITH LESS WORRIES"
-    }, 0);
-
-    setTimeout(() => {
-      text.textContent = "WITH LESS ERRORS"
-    }, 4000);
-
-    setTimeout(() => {
-      text.textContent = "MORE CONFIDENTLY"
-    }, 8000);
-  }
-
-  textLoad();
-  setInterval(textLoad, 12000);

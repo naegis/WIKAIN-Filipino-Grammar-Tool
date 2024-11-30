@@ -1,2 +1,6 @@
 flask
-flask-cors 
+flask-cors
+transformers
+difflib
+pytorch-pretrained-bert
+
