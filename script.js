@@ -108,15 +108,20 @@ async function checkGrammar() {
 
 function handleKeyDown(event) {
   if (event.key === 'Enter') {
-    event.preventDefault(); 
-    checkGrammar(); 
-
-
     const pasteButton = document.querySelector('.paste-btn');
     if (pasteButton) {
       pasteButton.style.display = 'none';
     }
+    
+    event.preventDefault(); 
+    checkGrammar(); 
   }
+}
+
+// Ensure the event listener is added to the input element
+const inputArea = document.getElementById('input-text');
+if (inputArea) {
+  inputArea.addEventListener('keydown', handleKeyDown);
 }
 
 function hidePasteButtonOnPaste() {
