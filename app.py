@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import re
 import numpy as np
-import difflib  # Import difflib for computing differences
+import openai
 
 app = Flask(__name__)
 CORS(app)
@@ -29,14 +29,10 @@ logging.getLogger("pytorch_pretrained").setLevel(logging.ERROR)
         - fix_ng_nang
         - fix_capitalization
         - fix_punctuation
-        - fix_ds_rs
+        - fix_enclytics
 '''
-import re
-from transformers import pipeline
 
-ner_pipeline = pipeline("ner", model="xlm-roberta-large-finetuned-conll03-english", aggregation_strategy="simple")
-
-def fix_contractions(text, changes):
+def fix_contractions(text):
     contractions = {
         r'\bsya\b': 'siya',
         r'\bsyang\b': 'siyang',
@@ -56,7 +52,11 @@ def fix_contractions(text, changes):
         r'\bdon\b' : 'doon',
         r'\byon\b' : 'iyon',
         r'\byan\b' : 'iyan',
-        r'\bkelan\b' : 'kailan'
+        r'\bkelan\b' : 'kailan',
+        r'\br\'on\b' : 'roon',
+        r'\bd\'on\b' : 'doon',
+        r'\br\'yan\b' : 'riyan',
+        r'\bd\'yan\b' : 'diyan'
     }
     
     def process_part(part):
@@ -69,15 +69,7 @@ def fix_contractions(text, changes):
                     corrected = replacement.title()
                 else:
                     corrected = replacement
-
-                if word.lower() != corrected.lower():
-                    changes.append({
-                        'original': word,
-                        'corrected': corrected,
-                        'rule': 'Contraction'
-                    })
                 return corrected
-
             part = re.sub(pattern, replace_match, part, flags=re.IGNORECASE)
         return part
 
@@ -94,14 +86,14 @@ def fix_contractions(text, changes):
     right_text = " ".join(words[mid:])
     
     # Conquer
-    left_result = fix_contractions(left_text, changes)
-    right_result = fix_contractions(right_text, changes)
+    left_result = fix_contractions(left_text)
+    right_result = fix_contractions(right_text)
     
     # Combine
     return left_result + " " + right_result
 
-def fix_morphology(text, changes):
-    pang = "aeiouAEIOUghkmnGHKMNwyWY"
+def fix_morphology(text):
+    pang = "aeioughkmnwyAEIOUGHKMNWY"
     pan = "dlrstDLRST"
     pam = "bpBP"
     
@@ -110,16 +102,18 @@ def fix_morphology(text, changes):
     
     for word in words:
         original_word = word
-        if word.startswith("pang"):
-            root = word[4:]
+        lower_word = word.lower() 
+        
+        if lower_word.startswith("pang"):
+            root = lower_word[4:]
             if root and root[0] in pam:
                 corrected = "pam" + root
             elif root and root[0] in pan:
                 corrected = "pan" + root
             else:
-                corrected = word  
-        elif word.startswith("pan") or word.startswith("pam"):
-            root = word[3:]
+                corrected = lower_word
+        elif lower_word.startswith("pan") or lower_word.startswith("pam"):
+            root = lower_word[3:]
             if root and root[0] in pang:
                 corrected = "pang" + root
             elif root and root[0] in pam:
@@ -127,22 +121,21 @@ def fix_morphology(text, changes):
             elif root and root[0] in pan:
                 corrected = "pan" + root
             else:
-                corrected = word  
+                corrected = lower_word
         else:
-            corrected = word  
-
-        if original_word != corrected:
-            changes.append({
-                'original': original_word,
-                'corrected': corrected,
-                'rule': 'Morphological'
-            })
+            corrected = lower_word
+        
+        if original_word.istitle():
+            corrected = corrected.capitalize()
+        elif original_word.isupper():
+            corrected = corrected.upper()
         
         result.append(corrected)
     
     return " ".join(result)
 
-def fix_hyphenation(text, changes):
+
+def fix_hyphenation(text):
     hyphenation_rules = [
         # Basic prefixes
         (r'\b(nag|mag|pag|tag|napaka)[\s]+([a-zA-Z])', r'\1-\2'),
@@ -159,21 +152,14 @@ def fix_hyphenation(text, changes):
     ]
     
     for pattern, replacement in hyphenation_rules:
-        matches = re.finditer(pattern, text, flags=re.IGNORECASE)
-        for match in matches:
-            original = match.group(0)
-            corrected = re.sub(pattern, replacement, original)
-            if original != corrected:
-                changes.append({
-                    'original': original,
-                    'corrected': corrected,
-                    'rule': 'Hyphenation'
-                })
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
     
     return text
 
-def fix_capitalization(text, changes):
+from transformers import pipeline
+ner_pipeline = pipeline("ner", model="xlm-roberta-large-finetuned-conll03-english", aggregation_strategy="simple")
+
+def fix_capitalization(text):
     # Get named entities using the pipeline
     ner_results = ner_pipeline(text)
     proper_names = {result['word'] for result in ner_results if result['entity_group'] in ['PER', 'ORG', 'LOC', 'MISC']}
@@ -181,120 +167,97 @@ def fix_capitalization(text, changes):
     # Add common Filipino honorifics, titles, and location indicators
     full_honorifics = {'ginoong', 'ginang', 'binibining'}
     short_honorifics = {'gng', 'bb', 'dok', 'dr', 'atty', 'eng', 'prof'}
-    
-    words = text.split()
+
+    # Separate words and punctuation, including spaces
+    words_with_punct = re.findall(r'\b\w+\b|[^\w\s]+|\s+', text)
     capitalized_words = []
     capitalize_next = True
-    
-    for i, word in enumerate(words):
+
+    for i, word in enumerate(words_with_punct):
         original_word = word
         lower_word = word.lower()
-        
+
+        # Skip spaces
+        if word.isspace():
+            capitalized_words.append(word)
+            continue
+
+        # Skip punctuation
+        if not word.isalnum():
+            capitalized_words.append(word)
+            if word in ('.', '!', '?'):
+                capitalize_next = True
+            continue
+
         # Special handling for multi-word proper names
-        if word.lower() in full_honorifics:
+        if lower_word in full_honorifics:
             corrected = word[0].capitalize() + word[1:]
-            if original_word != corrected:
-                changes.append({
-                    'original': original_word,
-                    'corrected': corrected,
-                    'rule': 'Capitalization'
-                })
             capitalized_words.append(corrected)
             capitalize_next = True
             continue
 
         elif lower_word in short_honorifics:
             corrected = word[0].upper() + word[1:] + "."
-            if original_word != corrected:
-                changes.append({
-                    'original': original_word,
-                    'corrected': corrected,
-                    'rule': 'Capitalization'
-                })
             capitalized_words.append(corrected)
             capitalize_next = True
-            continue    
-        
+            continue
+
         # Check if word is a proper name
         if lower_word in {name.lower() for name in proper_names}:
             corrected = word.capitalize()
-            if original_word != corrected:
-                changes.append({
-                    'original': original_word,
-                    'corrected': corrected,
-                    'rule': 'Capitalization'
-                })
             capitalized_words.append(corrected)
             # Check if the next word is also a proper name
-            if i + 1 < len(words) and words[i + 1].lower() in {name.lower() for name in proper_names}:
+            if i + 1 < len(words_with_punct) and words_with_punct[i + 1].lower() in {name.lower() for name in proper_names}:
                 capitalize_next = True
             else:
                 capitalize_next = False
         elif capitalize_next and word:
             corrected = word.capitalize()
-            if original_word != corrected:
-                changes.append({
-                    'original': original_word,
-                    'corrected': corrected,
-                    'rule': 'Capitalization'
-                })
             capitalized_words.append(corrected)
             capitalize_next = False
         else:
             capitalized_words.append(word.lower())
-        
+
         # Check for end of sentence
         if word.endswith(('.', '!', '?')):
             capitalize_next = True
 
-    return ' '.join(capitalized_words)
+    return ''.join(capitalized_words)
 
-def correct_ng_nang(text, changes):
-    # Define patterns for typical "nang" usage
+def fix_ng_nang(text):
     nang_patterns = [
-        r'\b(kumain|uminom|matulog|maglaro)\s+ng\b',
-        r'\b(mabilis|mabagal|maayos)\s+ng\b',
+        # Matches verbs with "um-" or "-um-" prefixes followed by "ng"
+        r'\b(?:um\w*|\w*um\w*)\s+ng\b',
+    
+        # Matches verbs with "ma-" or "mag-" prefixes followed by "ng"
+        r'\b(?:ma\w*|mag\w*)\s+ng\b',
+
+        # Matches redundant usage of "ng" or "nang"
         r'\b(ng)\s+(ng|nang)\b',
+
+        # Matches "nang" followed or preceded by time expressions
+        r'\b(?:ng)\s+(?:madaling\s+araw|tanghali|hatinggabi|umaga|hapon|gabi)\b',
+        r'\b(?:madaling\s+araw|tanghali|hatinggabi|umaga|hapon|gabi)\s+ng\b',
     ]
     
     ng_patterns = [
-        r'\bnang\s+(bahay|kotse|libro|pagkain)\b',
-        r'\b(may|maraming|ang)\s+nang\b',
+        # Matches any single word after "nang" (general nouns)
+        r'\bnang\s+\b(?:[a-zA-Z]+)\b',  
+
+        # Matches common modifiers or determiners followed by "nang"
+        r'\b(?:may|marami(?:ng)?|ang|sa)\s+nang\b',
     ]
     
-    # Apply corrections for nang_patterns
+    # Apply corrections
     for pattern in nang_patterns:
-        matches = re.finditer(pattern, text)
-        for match in matches:
-            original = match.group(0)
-            corrected = original.replace('ng', 'nang')
-            if original != corrected:
-                changes.append({
-                    'original': original,
-                    'corrected': corrected,
-                    'rule': 'Ng/Nang Usage'
-                })
         text = re.sub(pattern, lambda m: m.group().replace('ng', 'nang'), text)
     
-    # Apply corrections for ng_patterns
     for pattern in ng_patterns:
-        matches = re.finditer(pattern, text)
-        for match in matches:
-            original = match.group(0)
-            corrected = original.replace('nang', 'ng')
-            if original != corrected:
-                changes.append({
-                    'original': original,
-                    'corrected': corrected,
-                    'rule': 'Ng/Nang Usage'
-                })
         text = re.sub(pattern, lambda m: m.group().replace('nang', 'ng'), text)
     
     return text
 
-def fix_punctuation(text, changes):
-    original = text
-    modified = False
+def fix_punctuation(text):
     
     # Remove multiple punctuation
     text = re.sub(r'([.!?,;])\1+', r'\1', text)
@@ -314,29 +277,18 @@ def fix_punctuation(text, changes):
     # Add period at the end if missing
     if not text.rstrip().endswith(('.', '!', '?')):
         text = text.rstrip() + '.'
-        modified = True
     
     text = text.strip()
     
-    # Only add one change entry if any modifications were made
-    if original != text:
-        changes.append({
-            'original': original,
-            'corrected': text,
-            'rule': 'Punctuation'
-        })
-    
     return text
 
-def fix_ds_rs(text, changes):
+def fix_enclitics(text):
     replacement_pairs = {
         "din": "rin", "rin": "din",
         "dito": "rito", "rito": "dito",
         "diyan": "riyan", "riyan": "diyan",
         "raw": "daw", "daw": "raw",
         "doon": "roon", "roon": "doon",
-        "r'on": "d'on", "r'yan": "d'yan",
-        "d'on": "r'on", "d'yan": "r'yan"
     }
 
     words = text.split()
@@ -355,31 +307,46 @@ def fix_ds_rs(text, changes):
         prev_ends_with_vowel = prev_word[-1] in vowels if prev_word else False
         
         # Check conditions for replacement
-        if prev_ends_with_vowel and original_word in ["din", "dito", "diyan", "doon", "daw", "d'on", "d'yan"]:
+        if prev_ends_with_vowel and original_word in ["din", "dito", "diyan", "doon", "daw"]:
             corrected = replacement_pairs[original_word]
-            changes.append({
-                'original': word,
-                'corrected': corrected,
-                'rule': 'D/R Rule'
-            })
             result.append(corrected)
-        elif not prev_ends_with_vowel and original_word in ["rin", "rito", "riyan", "roon", "raw", "r'on", "r'yan"]:
+        elif not prev_ends_with_vowel and original_word in ["rin", "rito", "riyan", "roon", "raw"]:
             corrected = replacement_pairs[original_word]
-            changes.append({
-                'original': word,
-                'corrected': corrected,
-                'rule': 'D/R Rule'
-            })
             result.append(corrected)
         else:
             result.append(word)
     
     return " ".join(result)
 
-    return text
+'''
+prompt = f"Identify if there are any errors in this Tagalog sentence (wrong capitalization, misuse of roon/doon/nang/ng, etc), and if there are, please correct them. Only return the output, please do not include any other text: {sentence}"
 
+# FUNCTION TO GENERATE CONTENT
+def generate_content(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1000,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+        return response.choices[0].message['content'].strip()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+    
+# CALL FUNCTION
+corrected_sentence = generate_content(prompt)
 
-def compute_differences(original, corrected, changes):
+if corrected_sentence:
+    print(f"Corrected Sentence: \t{corrected_sentence}")
+else:
+    print("Failed to generate a response.")
+'''
+
+def compute_differences(original, corrected):
     # Split original and corrected sentences into words
     original_words = original.split()
     corrected_words = corrected.split()
@@ -428,10 +395,6 @@ def compute_differences(original, corrected, changes):
     # Return the changes formatted
     return changes_found
 
-
-
-
-
 @app.route('/')
 def serve_index():
     return app.send_static_file('index.html')
@@ -455,19 +418,15 @@ def check_grammar():
                 'changes': []
             }), 400
         
-        changes = []  # Initialize the changes list
-        corrected_text = correct_ng_nang(text, changes)
-        # Compute differences after all corrections
-        corrected_text = fix_contractions(corrected_text, changes)
-        corrected_text = fix_morphology(corrected_text, changes)
-        corrected_text = fix_hyphenation(corrected_text, changes)
-        corrected_text = fix_capitalization(corrected_text, changes)
-        corrected_text = fix_punctuation(corrected_text, changes)
-        corrected_text = fix_ds_rs(corrected_text, changes)
+        corrected_text = fix_ng_nang(text)
+        corrected_text = fix_contractions(corrected_text)
+        corrected_text = fix_hyphenation(corrected_text)
+        corrected_text = fix_morphology(corrected_text)
+        corrected_text = fix_capitalization(corrected_text)
+        corrected_text = fix_enclitics(corrected_text)
+        corrected_text = fix_punctuation(corrected_text)
         
-        # Compute differences once at the end
-        print(changes)
-        changes = compute_differences(text, corrected_text, changes)
+        changes = compute_differences(text, corrected_text)
 
         
         return jsonify({
