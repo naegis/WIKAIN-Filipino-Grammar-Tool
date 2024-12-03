@@ -4,6 +4,9 @@ import re
 import numpy as np
 import openai
 
+api_key = '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'
+openai.api_key = api_key
+
 app = Flask(__name__)
 CORS(app)
 
@@ -318,9 +321,6 @@ def fix_enclitics(text):
     
     return " ".join(result)
 
-'''
-prompt = f"Identify if there are any errors in this Tagalog sentence (wrong capitalization, misuse of roon/doon/nang/ng, etc), and if there are, please correct them. Only return the output, please do not include any other text: {sentence}"
-
 # FUNCTION TO GENERATE CONTENT
 def generate_content(prompt):
     try:
@@ -338,13 +338,7 @@ def generate_content(prompt):
         return None
     
 # CALL FUNCTION
-corrected_sentence = generate_content(prompt)
 
-if corrected_sentence:
-    print(f"Corrected Sentence: \t{corrected_sentence}")
-else:
-    print("Failed to generate a response.")
-'''
 
 def compute_differences(original, corrected):
     # Split original and corrected sentences into words
@@ -426,6 +420,9 @@ def check_grammar():
         corrected_text = fix_enclitics(corrected_text)
         corrected_text = fix_punctuation(corrected_text)
         
+        prompt = f"Identify if there are any errors in this Tagalog sentence (wrong capitalization, misuse of roon/doon/nang/ng, misuse of punctuations and contractions, etc), and if there are, please correct them. Only return the output, please do not include any other text: {corrected_text}"
+        corrected_text = generate_content(prompt)
+
         changes = compute_differences(text, corrected_text)
 
         
