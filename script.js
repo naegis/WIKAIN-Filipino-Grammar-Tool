@@ -14,19 +14,33 @@ function clearText() {
   // Clear the textarea content
   document.querySelector('textarea').value = '';
   
-  // Show the paste button again
+
   document.querySelector('.paste-btn').style.display = 'inline-block';
+  
+
+  document.getElementById('output-text').value = '';
+
+  const revisionsContainer = document.querySelector('.revisions');
+  revisionsContainer.innerHTML = `
+
+    <span class="revisionsp1">
+      Your revisions will appear here.
+    </span>
+    <span class="revisionsp2">
+      <br>Start writing to see your corrections.
+    </span>
+  `;
 }
 
 function copyText() {
-  // Get the output textarea
+
   const outputTextarea = document.querySelector('.output textarea');
   
-  // Select the text
+
   outputTextarea.select();
-  outputTextarea.setSelectionRange(0, 99999); // For mobile devices
+  outputTextarea.setSelectionRange(0, 99999);
   
-  // Copy the text
+
   navigator.clipboard.writeText(outputTextarea.value)
       .then(() => {
           // Optional: Add some visual feedback
@@ -59,25 +73,31 @@ async function checkGrammar() {
     const data = await response.json();
     outputTextArea.value = data.corrected_text;
 
-    // Clear previous revisions
+
     revisionsContainer.innerHTML = '';
 
-    // Create a new div to display changes
+
     const changesDiv = document.createElement('div');
     changesDiv.style.width = '100%';
-    changesDiv.style.height = 'auto'; // Adjust height as needed
+    changesDiv.style.height = 'auto'; 
 
     if (data.changes && data.changes.length > 0) {
-      // Assuming data.changes is an array of strings with the format you want
-      changesDiv.innerHTML = data.changes.map(change => {
-        // Example: "kumain - ng + nang mabuti" to "kumain <b>NG ➡️ NANG</b> mabuti"
-        return change.replace(/- (\w+) \+ (\w+)/g, '- $1 ➡️ $2');
-      }).join('<br>');
+   
+      let tableContainer = '<div style="max-height: 150px; max-width: 100%; overflow-y: auto;">';
+      tableContainer += '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
+      tableContainer += '<tr><th style="width: 50%; border: 1px solid #ddd;">Original</th><th style="width: 50%; border: 1px solid #ddd;">Corrected</th></tr>';
+      
+      data.changes.forEach(change => {
+        const [original, corrected] = change.match(/Original: '([^']+)' Corrected: '([^']+)'/).slice(1);
+        tableContainer += `<tr><td style="padding: 5px; border: 1px solid #ddd;">${original}</td><td style="padding: 5px; border: 1px solid #ddd;">${corrected}</td></tr>`;
+      });
+       
+      tableContainer += '</table></div>'; 
+      changesDiv.innerHTML = tableContainer;
     } else {
       changesDiv.innerHTML = 'No changes detected.';
     }
 
-    // Append the div to the revisions container
     revisionsContainer.appendChild(changesDiv);
 
   } catch (error) {
@@ -85,3 +105,30 @@ async function checkGrammar() {
     outputTextArea.value = 'Nagkaroon ng error habang sinusuri ang grammar.';
   }
 }
+
+function handleKeyDown(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault(); 
+    checkGrammar(); 
+
+
+    const pasteButton = document.querySelector('.paste-btn');
+    if (pasteButton) {
+      pasteButton.style.display = 'none';
+    }
+  }
+}
+
+function hidePasteButtonOnPaste() {
+  const inputArea = document.getElementById('input-text');
+  const pasteButton = document.querySelector('.paste-btn');
+
+  if (inputArea && pasteButton) {
+    inputArea.addEventListener('paste', () => {
+      pasteButton.style.display = 'none';
+    });
+  }
+}
+
+
+hidePasteButtonOnPaste();
