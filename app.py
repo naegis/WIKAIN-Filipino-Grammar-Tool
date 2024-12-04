@@ -2,10 +2,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import re
 import numpy as np
-import openai
-
-api_key = '' #change this
-openai.api_key = api_key
 
 app = Flask(__name__)
 CORS(app)
@@ -337,9 +333,6 @@ def generate_content(prompt):
         print(f"An error occurred: {e}")
         return None
     
-# CALL FUNCTION
-
-
 def compute_differences(original, corrected):
     # Split original and corrected sentences into words
     original_words = original.split()
@@ -419,9 +412,6 @@ def check_grammar():
         corrected_text = fix_capitalization(corrected_text)
         corrected_text = fix_enclitics(corrected_text)
         corrected_text = fix_punctuation(corrected_text)
-        
-        prompt = f"Identify if there are any errors in this Tagalog sentence (wrong capitalization, misuse of roon/doon/nang/ng, misuse of punctuations and contractions, etc), and if there are, please correct them. Only return the output, please do not include any other text: {corrected_text}"
-        corrected_text = generate_content(prompt)
 
         changes = compute_differences(text, corrected_text)
 
