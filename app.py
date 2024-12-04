@@ -252,12 +252,12 @@ def fix_ng_nang(text):
     ]
     
     # Apply corrections
-    for pattern in nang_patterns:
-        text = re.sub(pattern, lambda m: m.group().replace('ng', 'nang'), text)
-    
     for pattern in ng_patterns:
         text = re.sub(pattern, lambda m: m.group().replace('nang', 'ng'), text)
-    
+        
+    for pattern in nang_patterns:
+        text = re.sub(pattern, lambda m: m.group().replace('ng', 'nang'), text)
+
     return text
 
 def fix_punctuation(text):
