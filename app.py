@@ -4,7 +4,7 @@ import re
 import numpy as np
 import openai
 
-api_key = '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'
+api_key = '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'
 openai.api_key = api_key
 
 app = Flask(__name__)
@@ -157,7 +157,7 @@ def fix_hyphenation(text):
         # Location markers (new)
         (r'\b(taga|galing|mula|nanggaling)\s+([A-Z][a-z]+)', r'\1-\2'),
         # Reduplicated words
-         (r'\b(\w+)\s+\1\b', r'\1-\1'),
+        (r'\b(\w+)\s+\1\b', r'\1-\1'),
     ]
     
     for pattern, replacement in hyphenation_rules:
@@ -331,7 +331,7 @@ def generate_content(prompt):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=1000,
+            max_tokens=4096,
             n=1,
             stop=None,
             temperature=0.7,
@@ -416,15 +416,29 @@ def check_grammar():
         corrected_text = fix_ng_nang(text)
         corrected_text = fix_contractions(corrected_text)
         corrected_text = fix_morphology(corrected_text)
-        corrected_text = fix_capitalization(corrected_text)
         corrected_text = fix_hyphenation(corrected_text)
+        corrected_text = fix_capitalization(corrected_text)
         corrected_text = fix_enclitics(corrected_text)
         corrected_text = fix_punctuation(corrected_text)
         
-        prompt = f"Fix this sentence but only fix the following in this parenthesis (proper use of ng and nang, contractions, morphology, capitalization, hyphenation, enclitics, and punctuation). If you encounter errors that requires adding additional words (like ng or nang) do not in any case, add additional words. Only output the corrected sentence, using the words provided, no unnecessary comments. This is the sentence {corrected_text}"
-        corrected_text = generate_content(prompt)
+        # prompt = f"Fix this sentence but only fix the following in this parenthesis (proper use of ng and nang, contractions, morphology, capitalization, hyphenation, enclitics, and punctuation). If you encounter errors that requires adding additional words (like ng or nang) do not in any case, add additional words. Only output the corrected sentence, using the words provided, no unnecessary comments. This is the sentence {corrected_text}"
+        # corrected_text = generate_content(prompt)
 
         changes = compute_differences(text, corrected_text)
+        logging.info(f"Changes detected: {changes}")
+        print(corrected_text)
+
+
+        # Check if corrected_text is None
+        if corrected_text is None:
+            logging.error("Corrected text is None after generate_content")
+            return jsonify({
+                'error': 'Failed to generate corrected text',
+                'corrected_text': '',
+                'changes': []
+            }), 500
+
+        
 
         return jsonify({
             'corrected_text': corrected_text,
