@@ -4,7 +4,7 @@ import re
 import numpy as np
 import openai
 
-api_key = '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'
+api_key = 'secret'
 openai.api_key = api_key
 
 app = Flask(__name__)
