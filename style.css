@@ -305,22 +305,22 @@ section {
 }
 
 #hero h1 {
-	font-size: 7em;
+	font-size: 5em;			/*7em to before*/
 	color: #1F1F1F;
 	font-style: italic;
 	font-weight: 800;
-	line-height: 81%;
+	line-height: 78%;		/*81% to before*/
 	letter-spacing: -3px;
 	margin-top: 0;
 }
 
 #hero p {
-	font-size: 19px;
+	font-size: 16px;		/*19pxto before*/
     font-weight: 300;
     color: #505a64;
     margin-bottom: 0px;
     padding: 0px;
-	line-height: 98%;
+	line-height: 110%;		/*ito rin ata tho i forgot ano to before*/
 
 
 }
@@ -354,6 +354,8 @@ section {
     animation: slide 6s steps(1) infinite;
     top: 0;
 	overflow: hidden;
+	line-height: 1.1;		
+
 }
 
 @keyframes slide {
@@ -428,6 +430,14 @@ section {
 	background-color: #f6f8f9;
 	border-top: 1px solid #F8F9FB;
 	border-bottom: 1px solid #F8F9FB;
+}
+
+#testimonials h2{
+	font-size: 2.3em;
+}
+
+#testimonials p{
+	font-size: 1.1em;
 }
 
 .testimonial-box {
@@ -838,6 +848,7 @@ margin-bottom: 1em; /* Reduce spacing between containers */
 	height: auto;
 	width: 100%;
 	align-items: flex-start; /* Align revisions to the left */
+	align-items: center;
   }
 
 .input {
@@ -963,6 +974,7 @@ textarea::placeholder {
 .revisions {
   width: 100%;
   height: 100px;
+  text-align: center;
   /* text-align: left; */
   /* align-self: flex-start; */
   /* vertical-align: top; */
@@ -971,10 +983,11 @@ textarea::placeholder {
 
 .rtitle {
   font-size: 24px!important;
+  text-align: center;
   line-height: 1.6;
   font-weight: 700;
   margin: 0;
-
+  text-align: center;
 }
 /* 
 .svg {

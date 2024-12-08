@@ -6,10 +6,11 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
-import os
-import logging
-import warnings
 import transformers
+import logging
+import tensorflow as tf
+import os
+import warnings
 
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -19,6 +20,10 @@ logging.getLogger("huggingface").setLevel(logging.ERROR)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.getLogger("pytorch_pretrained_bert").setLevel(logging.ERROR)
 logging.getLogger("pytorch_pretrained").setLevel(logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+from transformers import pipeline
+ner_pipeline = pipeline("ner", model="xlm-roberta-large-finetuned-conll03-english", aggregation_strategy="simple")
 
 '''
     Defining functions for grammar correction.
@@ -40,7 +45,6 @@ def fix_contractions(text):
         r'\bmeron\b': 'mayroon',
         r'\bwag\b': 'huwag',
         r'\bpadin\b': 'pa rin',
-        r'\bpalang\b': 'pa lang',
         r'\bsakin\b': 'sa akin',
         r'\bsayo\b': 'sa iyo',
         r'\bsatin\b': 'sa atin',
@@ -55,7 +59,10 @@ def fix_contractions(text):
         r'\br\'on\b' : 'roon',
         r'\bd\'on\b' : 'doon',
         r'\br\'yan\b' : 'riyan',
-        r'\bd\'yan\b' : 'diyan'
+        r'\bd\'yan\b' : 'diyan',
+        r'\bdiba\b' : 'hindi ba',
+        r'\b\'diba\b' : 'hindi ba',
+        r'\b\'di ba\b' : 'hindi ba',
     }
     
     def process_part(part):
@@ -135,28 +142,24 @@ def fix_morphology(text):
 
 
 def fix_hyphenation(text):
+    vowels = "aeiouAEIOU"
     hyphenation_rules = [
-        # Basic prefixes
-        (r'\b(nag|mag|pag|tag|napaka)[\s]+([a-zA-Z])', r'\1-\2'),
-        # Complex prefixes
-        (r'\b(mag|nag)(pa|pi|pu|pe|po)[\s]+', r'\1\2-'),
-        # More prefixes
-        (r'\b(maka|naka|paka|pinaka)[\s]+([a-zA-Z])', r'\1-\2'),
+        # Basic prefixes with vowel check
+        (r'\b(nag|mag|pag|tag|napaka|ika)\s+([' + vowels + '])', r'\1-\2'),
+        # More prefixes with vowel check
+        (r'\b(maka|naka|paka|pinaka)\s+([' + vowels + '])', r'\1-\2'),
         # Numbers
-        (r'\b(isa|dalawa|tatlo|apat|lima|pito|walo|sampu)[\s]+(ng|pung)', r'\1\2-'),
+        (r'\b(isa|dalawa|tatlo|apat|lima|pito|walo|sampu)\s+(ng|pung)', r'\1\2-'),
         # Location markers (new)
-        (r'\b(taga|galing|mula|nanggaling)[\s]+([A-Z][a-z]+)', r'\1-\2'),
+        (r'\b(taga|galing|mula|nanggaling)\s+([A-Z][a-z]+)', r'\1-\2'),
         # Reduplicated words
-        (r'\b([a-zA-Z]+)[\s]+\1\b', r'\1-\1'),
+         (r'\b(\w+)\s+\1\b', r'\1-\1'),
     ]
     
     for pattern, replacement in hyphenation_rules:
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
     
     return text
-
-from transformers import pipeline
-ner_pipeline = pipeline("ner", model="xlm-roberta-large-finetuned-conll03-english", aggregation_strategy="simple")
 
 def fix_capitalization(text):
     # Get named entities using the pipeline
@@ -230,6 +233,9 @@ def fix_ng_nang(text):
     
         # Matches verbs with "ma-" or "mag-" prefixes followed by "ng"
         r'\b(?:ma\w*|mag\w*)\s+ng\b',
+        r'\b(ng)\s+(?:ma\w*|mag\w*)\b',
+        r'\b(?:nag\w*)\s+ng\b',
+        r'\b(ng)\s+(?:nag\w*)\b'
 
         # Matches redundant usage of "ng" or "nang"
         r'\b(ng)\s+(ng|nang)\b',
@@ -250,14 +256,13 @@ def fix_ng_nang(text):
     # Apply corrections
     for pattern in ng_patterns:
         text = re.sub(pattern, lambda m: m.group().replace('nang', 'ng'), text)
-        
     for pattern in nang_patterns:
         text = re.sub(pattern, lambda m: m.group().replace('ng', 'nang'), text)
+
 
     return text
 
 def fix_punctuation(text):
-    
     # Remove multiple punctuation
     text = re.sub(r'([.!?,;])\1+', r'\1', text)
     
@@ -407,15 +412,14 @@ def check_grammar():
         
         corrected_text = fix_ng_nang(text)
         corrected_text = fix_contractions(corrected_text)
-        corrected_text = fix_hyphenation(corrected_text)
         corrected_text = fix_morphology(corrected_text)
         corrected_text = fix_capitalization(corrected_text)
+        corrected_text = fix_hyphenation(corrected_text)
         corrected_text = fix_enclitics(corrected_text)
         corrected_text = fix_punctuation(corrected_text)
-
+        
         changes = compute_differences(text, corrected_text)
 
-        
         return jsonify({
             'corrected_text': corrected_text,
             'changes': changes,
