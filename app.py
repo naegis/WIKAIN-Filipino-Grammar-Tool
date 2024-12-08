@@ -2,6 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import re
 import numpy as np
+import openai
+
+api_key = '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'
+openai.api_key = api_key
 
 app = Flask(__name__)
 CORS(app)
@@ -176,7 +180,6 @@ def fix_capitalization(text):
     capitalize_next = True
 
     for i, word in enumerate(words_with_punct):
-        original_word = word
         lower_word = word.lower()
 
         # Skip spaces
@@ -418,6 +421,9 @@ def check_grammar():
         corrected_text = fix_enclitics(corrected_text)
         corrected_text = fix_punctuation(corrected_text)
         
+        prompt = f"Fix this sentence but only fix the following in this parenthesis (proper use of ng and nang, contractions, morphology, capitalization, hyphenation, enclitics, and punctuation). If you encounter errors that requires adding additional words (like ng or nang) do not in any case, add additional words. Only output the corrected sentence, using the words provided, no unnecessary comments. This is the sentence {corrected_text}"
+        corrected_text = generate_content(prompt)
+
         changes = compute_differences(text, corrected_text)
 
         return jsonify({
