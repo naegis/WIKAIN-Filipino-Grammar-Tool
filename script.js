@@ -88,8 +88,18 @@ async function checkGrammar() {
       tableContainer += '<tr><th style="width: 50%; border: 1px solid #ddd;">Original</th><th style="width: 50%; border: 1px solid #ddd;">Corrected</th></tr>';
       
       data.changes.forEach(change => {
-        const [original, corrected] = change.match(/Original: '([^']+)' Corrected: '([^']+)'/).slice(1);
-        tableContainer += `<tr><td style="padding: 5px; border: 1px solid #ddd;">${original}</td><td style="padding: 5px; border: 1px solid #ddd;">${corrected}</td></tr>`;
+        // Add null check and safer parsing
+        try {
+          const match = change.match(/Original: '([^']+)' Corrected: '([^']+)'/);
+          if (match && match.length >= 3) {
+            const [, original, corrected] = match;
+            tableContainer += `<tr><td style="padding: 5px; border: 1px solid #ddd;">${original}</td><td style="padding: 5px; border: 1px solid #ddd;">${corrected}</td></tr>`;
+          } else {
+            console.warn('Invalid change format:', change);
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse change:', change, parseError);
+        }
       });
        
       tableContainer += '</table></div>'; 
@@ -102,7 +112,7 @@ async function checkGrammar() {
 
   } catch (error) {
     console.error('Error:', error);
-    outputTextArea.value = 'Nagkaroon ng error habang sinusuri ang grammar.';
+    outputTextArea.value = 'Nagkaroon ng error habang sinusuri ang grammar. (JS)';
   }
 }
 
