@@ -42,10 +42,14 @@ ner_pipeline = pipeline("ner", model="xlm-roberta-large-finetuned-conll03-englis
 
 def fix_contractions(text):
     contractions = {
+        r'\bkong\b': 'akong',
         r'\bsya\b': 'siya',
         r'\bsyang\b': 'siyang',
+        r'\bkanyang\b' : 'kaniyang', 
+        r'\bkanya\b' : 'kaniya',
         r'\bsyay\b': 'siya ay',
         r'\bnya\b': 'niya',
+        r'\bnyang\b': 'niyang',
         r'\bmeron\b': 'mayroon',
         r'\bwag\b': 'huwag',
         r'\bpadin\b': 'pa rin',
@@ -58,6 +62,7 @@ def fix_contractions(text):
         r'\bron\b': 'roon',
         r'\bdon\b' : 'doon',
         r'\byon\b' : 'iyon',
+        r'\byun\b' : 'iyon',
         r'\byan\b' : 'iyan',
         r'\bkelan\b' : 'kailan',
         r'\br\'on\b' : 'roon',
@@ -66,7 +71,10 @@ def fix_contractions(text):
         r'\bd\'yan\b' : 'diyan',
         r'\bdiba\b' : 'hindi ba',
         r'\b\'diba\b' : 'hindi ba',
-        r'\b\'di ba\b' : 'hindi ba',
+        r'\b\'di\b' : 'hindi',
+        r'\bdi\b' : 'hindi',
+        r'\bsyam\b' : 'siyam',
+        r'bkong\b' : 'akong'
     }
     
     def process_part(part):
@@ -107,6 +115,9 @@ def fix_morphology(text):
     pan = "dlrstDLRST"
     pam = "bpBP"
     
+    # List of excluded words that should not be altered
+    exclude_words = ['pamilya', 'panglima']
+
     words = text.split()
     result = []
     
@@ -114,26 +125,30 @@ def fix_morphology(text):
         original_word = word
         lower_word = word.lower() 
         
-        if lower_word.startswith("pang"):
-            root = lower_word[4:]
-            if root and root[0] in pam:
-                corrected = "pam" + root
-            elif root and root[0] in pan:
-                corrected = "pan" + root
-            else:
-                corrected = lower_word
-        elif lower_word.startswith("pan") or lower_word.startswith("pam"):
-            root = lower_word[3:]
-            if root and root[0] in pang:
-                corrected = "pang" + root
-            elif root and root[0] in pam:
-                corrected = "pam" + root
-            elif root and root[0] in pan:
-                corrected = "pan" + root
-            else:
-                corrected = lower_word
+        # Check if the word is in the exclude list, and if so, leave it unchanged
+        if lower_word in exclude_words:
+            corrected = original_word
         else:
-            corrected = lower_word
+            if lower_word.startswith("pang"):
+                root = lower_word[4:]
+                if root and root[0] in pam:
+                    corrected = "pam" + root
+                elif root and root[0] in pan:
+                    corrected = "pan" + root
+                else:
+                    corrected = lower_word
+            elif lower_word.startswith("pan") or lower_word.startswith("pam"):
+                root = lower_word[3:]
+                if root and root[0] in pang:
+                    corrected = "pang" + root
+                elif root and root[0] in pam:
+                    corrected = "pam" + root
+                elif root and root[0] in pan:
+                    corrected = "pan" + root
+                else:
+                    corrected = lower_word
+            else:
+                corrected = lower_word
         
         if original_word.istitle():
             corrected = corrected.capitalize()
@@ -144,14 +159,15 @@ def fix_morphology(text):
     
     return " ".join(result)
 
-
 def fix_hyphenation(text):
     vowels = "aeiouAEIOU"
     hyphenation_rules = [
         # Basic prefixes with vowel check
         (r'\b(nag|mag|pag|tag|napaka|ika)\s+([' + vowels + '])', r'\1-\2'),
-        # More prefixes with vowel check
         (r'\b(maka|naka|paka|pinaka)\s+([' + vowels + '])', r'\1-\2'),
+        # Remove space if prefix is followed by a consonant
+        (r'\b(nag|mag|pag|tag|napaka|ika)\s+([^' + vowels + r'\W])', r'\1\2'),
+        (r'\b(maka|naka|paka|pinaka)\s+([^' + vowels + r'\W])', r'\1\2'),
         # Numbers
         (r'\b(isa|dalawa|tatlo|apat|lima|pito|walo|sampu)\s+(ng|pung)', r'\1\2-'),
         # Location markers (new)
@@ -172,7 +188,7 @@ def fix_capitalization(text):
 
     # Add common Filipino honorifics, titles, and location indicators
     full_honorifics = {'ginoong', 'ginang', 'binibining'}
-    short_honorifics = {'gng', 'bb', 'dok', 'dr', 'atty', 'eng', 'prof'}
+    short_honorifics = {'gng', 'bb', 'dok', 'dr', 'atty', 'eng', 'prof', "mr", "ms", "mrs"}
 
     # Separate words and punctuation, including spaces
     words_with_punct = re.findall(r'\b\w+\b|[^\w\s]+|\s+', text)
@@ -231,19 +247,19 @@ def fix_capitalization(text):
 
 def fix_ng_nang(text):
     nang_patterns = [
-        # Matches verbs with "um-" or "-um-" prefixes followed by "ng"
-        r'\b(?:um\w*|\w*um\w*)\s+ng\b',
-    
-        # Matches verbs with "ma-" or "mag-" prefixes followed by "ng"
-        r'\b(?:ma\w*|mag\w*)\s+ng\b',
-        r'\b(ng)\s+(?:ma\w*|mag\w*)\b',
-        r'\b(?:nag\w*)\s+ng\b',
-        r'\b(ng)\s+(?:nag\w*)\b'
+        # Common Tagalog Prefixes
+        r'\b(?:um\w*|ma\w*|mag\w*|nag\w*|na\w*|i\w*|ipa\w*|in\w*|pa\w*)\s+ng\b',
+        r'\bng\s+(?:um\w*|ma\w*|mag\w*|nag\w*|na\w*|i\w*|ipa\w*|in\w*|pa\w*)\b',
 
-        # Matches redundant usage of "ng" or "nang"
-        r'\b(ng)\s+(ng|nang)\b',
+        # Common Tagalog Infixes
+        r'\b(?:\w*um\w*|\w*in\w*)\s+ng\b',
+        r'\bng\s+(?:\w*um\w*|\w*in\w*)\b',
 
-        # Matches "nang" followed or preceded by time expressions
+        # Common Tagalog Suffixes
+        r'\b(?:\w*han\w*|\w*yan\w*)\s+ng\b',
+        r'\bng\s+(?:\w*han\w*|\w*yan\w*)\b',
+
+        # Time expressions
         r'\b(?:ng)\s+(?:madaling\s+araw|tanghali|hatinggabi|umaga|hapon|gabi)\b',
         r'\b(?:madaling\s+araw|tanghali|hatinggabi|umaga|hapon|gabi)\s+ng\b',
     ]
