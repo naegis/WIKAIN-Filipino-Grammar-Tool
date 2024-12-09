@@ -116,7 +116,7 @@ def fix_morphology(text):
     pam = "bpBP"
     
     # List of excluded words that should not be altered
-    exclude_words = ['pamilya', 'panglima']
+    exclude_words = ['pamilya']
 
     words = text.split()
     result = []
