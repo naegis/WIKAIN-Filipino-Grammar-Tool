@@ -74,7 +74,6 @@ def fix_contractions(text):
         r'\b\'di\b' : 'hindi',
         r'\bdi\b' : 'hindi',
         r'\bsyam\b' : 'siyam',
-        r'bkong\b' : 'akong'
     }
     
     def process_part(part):
