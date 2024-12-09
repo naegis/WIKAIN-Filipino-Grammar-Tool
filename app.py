@@ -74,7 +74,6 @@ def fix_contractions(text):
         r'\b\'di\b' : 'hindi',
         r'\bdi\b' : 'hindi',
         r'\bsyam\b' : 'siyam',
-        r'bkong\b' : 'akong'
     }
     
     def process_part(part):
@@ -116,7 +115,7 @@ def fix_morphology(text):
     pam = "bpBP"
     
     # List of excluded words that should not be altered
-    exclude_words = ['pamilya', 'panglima']
+    exclude_words = ['pamilya']
 
     words = text.split()
     result = []
