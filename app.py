@@ -32,12 +32,12 @@ ner_pipeline = pipeline("ner", model="xlm-roberta-large-finetuned-conll03-englis
 '''
     Defining functions for grammar correction.
         - fix_contractions
-        - fix_morphological     
+        - fix_morphology     
         - fix_hyphenation
         - fix_ng_nang
         - fix_capitalization
         - fix_punctuation
-        - fix_enclytics
+        - fix_enclitics
 '''
 
 def fix_contractions(text):
@@ -74,6 +74,7 @@ def fix_contractions(text):
         r'\b\'di\b' : 'hindi',
         r'\bdi\b' : 'hindi',
         r'\bsyam\b' : 'siyam',
+        r'\btyan\b' : 'tiyan',
     }
     
     def process_part(part):
@@ -146,6 +147,42 @@ def fix_morphology(text):
                     corrected = "pan" + root
                 else:
                     corrected = lower_word
+            elif lower_word.startswith("nang"):
+                root = lower_word[4:]
+                if root and root[0] in pam:
+                    corrected = "nam" + root
+                elif root and root[0] in pan:
+                    corrected = "nan" + root
+                else:
+                    corrected = lower_word
+            elif lower_word.startswith("nan") or lower_word.startswith("nam"):
+                root = lower_word[3:]
+                if root and root[0] in pang:
+                    corrected = "nang" + root
+                elif root and root[0] in pam:
+                    corrected = "nam" + root
+                elif root and root[0] in pan:
+                    corrected = "nan" + root
+                else:
+                    corrected = lower_word
+            elif lower_word.startswith("mang"):
+                root = lower_word[4:]
+                if root and root[0] in pam:
+                    corrected = "mam" + root
+                elif root and root[0] in pan:
+                    corrected = "man" + root
+                else:
+                    corrected = lower_word
+            elif lower_word.startswith("man") or lower_word.startswith("mam"):
+                root = lower_word[3:]
+                if root and root[0] in pang:
+                    corrected = "mang" + root
+                elif root and root[0] in pam:
+                    corrected = "mam" + root
+                elif root and root[0] in pan:
+                    corrected = "man" + root
+                else:
+                    corrected = lower_word
             else:
                 corrected = lower_word
         
@@ -170,7 +207,7 @@ def fix_hyphenation(text):
         # Numbers
         (r'\b(isa|dalawa|tatlo|apat|lima|pito|walo|sampu)\s+(ng|pung)', r'\1\2-'),
         # Location markers (new)
-        (r'\b(taga|galing|mula|nanggaling)\s+([A-Z][a-z]+)', r'\1-\2'),
+        (r'\b(taga)\s+([A-Z][a-z]+)', r'\1-\2'),
         # Reduplicated words
         (r'\b(\w+)\s+\1\b', r'\1-\1'),
     ]
@@ -261,6 +298,8 @@ def fix_ng_nang(text):
         # Time expressions
         r'\b(?:ng)\s+(?:madaling\s+araw|tanghali|hatinggabi|umaga|hapon|gabi)\b',
         r'\b(?:madaling\s+araw|tanghali|hatinggabi|umaga|hapon|gabi)\s+ng\b',
+        r'\b(?:ng)\s+(?:linggo|lunes|martes|miyerkules|huwebes|biyernes|sabado)\b',
+        r'\b(?:linggo|lunes|martes|miyerkules|huwebes|biyernes|sabado)\s+ng\b',
     ]
     
     ng_patterns = [
@@ -431,8 +470,8 @@ def check_grammar():
         corrected_text = fix_ng_nang(text)
         corrected_text = fix_contractions(corrected_text)
         corrected_text = fix_morphology(corrected_text)
-        corrected_text = fix_hyphenation(corrected_text)
         corrected_text = fix_capitalization(corrected_text)
+        corrected_text = fix_hyphenation(corrected_text)
         corrected_text = fix_enclitics(corrected_text)
         corrected_text = fix_punctuation(corrected_text)
         
